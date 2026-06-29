@@ -18,9 +18,10 @@ export const bookSchema = z.object({
     author: z.string().min(1),
     category: z.enum(categories),
     description: z.string().min(1),
-    cover: z.string().url()
 }); 
 
 
-export type bookBody = z.infer<typeof bookSchema>;
+export type bookBody = z.infer<typeof bookSchema> & { cover: string };
+export type bookUpdate = z.infer<typeof bookSchema> & { cover?: string };
+
 

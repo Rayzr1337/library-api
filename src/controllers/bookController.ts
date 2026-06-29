@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import * as bookService from '../services/bookService'
-import { bookBody } from '../validators/bookValidator'
+import { bookBody, bookUpdate } from '../validators/bookValidator'
+import { AppError } from '../utils/AppError'
 
 export async function get_books(req: Request, res: Response) {
     const result = await bookService.getBooks();
@@ -8,7 +9,9 @@ export async function get_books(req: Request, res: Response) {
 };
 
 export async function create_book(req: Request<{}, {}, bookBody>, res: Response) {
-    const result = await bookService.addBook(req.body); 
+    const cover = req.file?.filename;
+    if (!cover) throw new AppError('Book cover image required!', 400);
+    const result = await bookService.addBook({ ...req.body, cover }); 
     res.status(201).json(result);
 };
 
@@ -24,7 +27,8 @@ export async function delete_book(req : Request<{id: string}>, res: Response) {
 
 
 export async function update_book(req : Request<{id: string}, {}, bookBody>, res: Response) {
-    const result = await bookService.updateBook(req.params.id, req.body); 
+    const cover = req.file?.filename;
+    const result = await bookService.updateBook(req.params.id, {...req.body, ...(cover && { cover }) }); 
     res.json(result);
 };
 

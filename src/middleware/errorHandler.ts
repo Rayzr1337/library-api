@@ -5,7 +5,9 @@ type controllerFunc = (req: Request<any>, res: Response, next: NextFunction) => 
 
 export function globalErrorHandler(err: unknown, req: Request, res: Response, next: NextFunction) {
     if (err instanceof AppError) {
-        res.status(err.statusCode).json({error: `${err.message}`});
+        res.status(err.statusCode).json(
+            err.data ? { errors: err.data } : { error : err.message }
+        );
     } else if ((err as any).name === 'CastError') {
         res.status(400).json({ error: 'Invalid ID format' })
     } else if ((err as any).code === 11000) {

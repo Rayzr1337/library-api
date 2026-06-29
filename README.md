@@ -1,12 +1,14 @@
-# Library Mangagement API
+# Library Management API
 
-Simple library CRUD API. Handles books, users, and borrow/return workflows with with role-based control.
+Simple library CRUD API. Handles books, users, and borrow/return workflows with role-based access control.
 
-Stack: Node.js, Express, TypeScript, MongoDB.
+**Stack:** Node.js, Express, TypeScript, MongoDB
 
-Validation: Zod
+**Validation:** Zod
 
-Auth: Session auth (express-session + connect-mongo, password hashing with bcrypt)
+**Auth:** Session-based (express-session + connect-mongo, bcrypt password hashing)
+
+**File Uploads (for cover images):** Multer
 
 ---
 
@@ -18,70 +20,205 @@ cd library-api
 npm install
 ```
 
-create a `.env` file:
+Create a `.env` file:
 ```
 PORT=
 DB_URL=
 SESSION_SECRET=
 ```
 
-run:
 ```bash
 npm run dev
 ```
+
+Multer upload directory: ```./uploads```
 
 ---
 
 ## Endpoints
 
-All endpoints are prefixed with `/api`. Bodies are JSON.
+All endpoints prefixed with `/api`. JSON bodies unless noted.
+
+---
 
 ### Auth
+
 ```
 POST /api/auth/signup
 POST /api/auth/login
 POST /api/auth/logout
 ```
 
+**Signup body:**
+```json
+{
+  "username": "string",
+  "email": "string",
+  "password": "string",
+  "firstName": "string",
+  "lastName": "string",
+  "isAdmin": false
+}
+```
+
+**Login body:**
+```json
+{
+  "username": "string",
+  "password": "string"
+}
+```
+
+**User response** (password never included):
+```json
+{
+  "_id": "...",
+  "username": "string",
+  "email": "string",
+  "firstName": "string",
+  "lastName": "string",
+  "isAdmin": false
+}
+```
+
+---
+
 ### Books
+
 ```
-GET    /api/books
-GET    /api/books/:id
-POST   /api/books        (admin)
-PUT    /api/books/:id    (admin)
-DELETE /api/books/:id    (admin)
+GET    /api/books           public
+GET    /api/books/:id       public
+POST   /api/books           admin
+PUT    /api/books/:id       admin
+DELETE /api/books/:id       admin
 ```
+
+`POST` and `PUT` accept `multipart/form-data` (cover is an image file upload):
+
+| Field | Type | Required |
+|-------|------|----------|
+| name | text | yes |
+| author | text | yes |
+| category | text | yes |
+| description | text | yes |
+| cover | file (image) | yes (optional on PUT) |
+
+Valid categories: `fantasy`, `dystopia`, `classic`, `science`, `history`, `self-help`, `psychology`, `technology`, `biography`, `philosophy`
+
+**Book response:**
+```json
+{
+  "id": "B-00001",
+  "name": "string",
+  "author": "string",
+  "category": "string",
+  "description": "string",
+  "cover": "COVER-1234567890.jpg",
+  "available": true
+}
+```
+
+Cover images served at `/uploads/:filename`,
+
+for example: http://localhost:PORT/uploads/COVER-filename.jpg
+
+---
 
 ### Borrow
+
 ```
-GET  /api/borrow                  (current user's records)
-POST /api/borrow                  (borrow a book)
-POST /api/borrow/return/:id       (return a book)
-GET  /api/borrow/recent           (admin)
+GET  /api/borrow              user — current user's borrow records
+POST /api/borrow              user — borrow a book
+POST /api/borrow/return/:id   user — return a book by book ID (e.g. B-00001)
+GET  /api/borrow/recent       admin — recent borrow activity
 ```
 
-### Users
+**Borrow body:**
+```json
+{
+  "bookId": "B-00001"
+}
 ```
-GET /api/user/me
-PUT /api/user/me
+
+**Borrow record response:**
+```json
+{
+  "_id": "...",
+  "book": {
+    "id": "B-00001",
+    "name": "string",
+    "author": "string",
+    "cover": "COVER-1234567890.jpg",
+    "available": false
+  },
+  "user": {
+    "username": "string",
+    "email": "string"
+  },
+  "borrowDate": "2026-01-01T00:00:00.000Z",
+  "returnDate": null
+}
+```
+
+`returnDate` is `null` if currently borrowed.
+
+---
+
+### Users
+
+```
+GET /api/user/me    user
+PUT /api/user/me    user
+```
+
+`PUT` body — all fields required:
+```json
+{
+  "username": "string",
+  "email": "string",
+  "password": "string",
+  "firstName": "string",
+  "lastName": "string",
+  "isAdmin": false
+}
+```
+
+---
+
+## Error responses
+
+```json
+{ "error": "message" }
+```
+
+Validation errors:
+```json
+{
+  "errors": {
+    "name": ["Required"],
+    "cover": ["Invalid URL"]
+  }
+}
 ```
 
 ---
 
 ## Notes
 
-- Books get sequential IDs (`B-00001`, `B-00002`, ...) 
-- Book availability updates automatically on borrow or return
-- Session-based auth -> login sets cookie and logout destroys it
+- Books get sequential IDs (`B-00001`, `B-00002`, ...)
+- Book availability flips automatically on borrow and return
+- A user cannot borrow the same book twice while it's still borrowed
+- Session auth -> login sets a cookie, logout destroys it
 
 ---
 
 ## Planned
 
-- JWT auth
-- Pagination, filtering, sorting
-- Rate limiting + security hardening (helmet, CORS)
-- Image uploads for book covers
+- JWT auth with refresh tokens
+- Pagination, filtering, sorting on list endpoints
+- Rate limiting + security hardening (helmet, CORS, mongo sanitization)
+- Cloudinary integration for book cover uploads
 - Tests (Jest + Supertest)
+- Dockerization
 
 

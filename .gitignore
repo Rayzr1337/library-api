@@ -2,3 +2,5 @@
 dist/
 *.tsbuildinfo
 node_modules
+uploads/*
+!uploads/.gitkeep
