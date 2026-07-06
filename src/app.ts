@@ -2,35 +2,21 @@ import express from 'express'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import morgan from 'morgan'
-import session from 'express-session'
-import MongoStore from 'connect-mongo'
+dotenv.config();
+
+import cookieParser from 'cookie-parser'
 import { globalErrorHandler } from './middleware/errorHandler'
 import { AppError } from './utils/AppError'
-
 import authRouter from './routes/auth'
 import bookRouter from './routes/books'
 import borrowRouter from './routes/borrows'
 import userRouter from './routes/users'
 
-dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(morgan('dev'));
+app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
-
-app.use(session({
-    secret: process.env.SESSION_SECRET!,
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-        mongoUrl: process.env.DB_URL!,
-        collectionName: 'sessions'
-    }),
-    cookie: {
-        maxAge: 1000 * 60 * 60 * 24 * 2
-    }
-}));
-
 
 const main = async () => {
     try {
