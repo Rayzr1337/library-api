@@ -4,7 +4,7 @@ import { AppError } from '../utils/AppError'
 import { Types } from 'mongoose' 
 
 export async function getBorrows(id: string) {
-    return Borrow.find({ id }).populate('book');
+    return Borrow.find({ user: id }).populate('book');
 };
 
 export async function getRecentBorrows() {
