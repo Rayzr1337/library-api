@@ -1,8 +1,8 @@
-import mongoose, { model, Schema } from 'mongoose';
+import { Types, model, Schema } from 'mongoose';
 
 export interface IBorrowRecord {
-    book: mongoose.Types.ObjectId,
-    user: mongoose.Types.ObjectId,
+    book: Types.ObjectId,
+    user: Types.ObjectId,
     borrowDate: Date,
     returnDate: Date | null
 };
@@ -14,7 +14,9 @@ const borrowSchema = new Schema<IBorrowRecord> ({
     returnDate: { type: Date, default: null }
 }, { timestamps: true, versionKey: false });
 
-borrowSchema.index({ book: 1, user: 1 }, { unique: true });
+borrowSchema.index({ book: 1, user: 1 }, { unique: true , partialFilterExpression: {
+    returnDate: null
+}});
 const Borrow = model<IBorrowRecord>('Borrow', borrowSchema);
 
 export default Borrow;

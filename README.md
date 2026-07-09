@@ -2,13 +2,13 @@
 
 Simple library CRUD API. Handles books, users, and borrow/return workflows with role-based access control.
 
-**Stack:** Node.js, Express, TypeScript, MongoDB
+**Stack:** Node.js, Express, TypeScript, MongoDB (Mongoose)
 
 **Validation:** Zod
 
-**Auth:** Session-based (express-session + connect-mongo, bcrypt password hashing)
+**Auth:** JWT (access + refresh tokens, bcrypt password hashing)
 
-**File Uploads (for cover images):** Multer
+**File Uploads:** Multer
 
 ---
 
@@ -24,14 +24,29 @@ Create a `.env` file:
 ```
 PORT=
 DB_URL=
-SESSION_SECRET=
+JWT_SECRET=
+NODE_ENV= //'production' or 'development'
 ```
 
 ```bash
 npm run dev
 ```
 
-Multer upload directory: ```./uploads```
+Multer upload directory: `./uploads`
+
+---
+
+## Authentication
+
+JWT-based auth with a two-token system:
+
+**Access token**: short-lived (15 min), signed with HS256, stored in an `httpOnly` cookie. Sent automatically on every request. Contains `userId` and `isAdmin` in the payload.
+
+**Refresh token**: long-lived (3 days), stored in a separate `httpOnly` cookie. Used only to issue a new access token when the current one expires. The raw token is stored as a SHA256 hash in the MongoDB database
+
+**Rotation** — every call to `/api/auth/refresh` invalidates the old refresh token and issues a new one. The new refresh token inherits the original expiry, so the 3-day window doesn't reset on each refresh.
+
+**Logout** — clears both cookies and deletes the refresh token hash from the database. Works even if the access token is expired.
 
 ---
 
@@ -47,6 +62,7 @@ All endpoints prefixed with `/api`. JSON bodies unless noted.
 POST /api/auth/signup
 POST /api/auth/login
 POST /api/auth/logout
+POST /api/auth/refresh
 ```
 
 **Signup body:**
@@ -119,8 +135,7 @@ Valid categories: `fantasy`, `dystopia`, `classic`, `science`, `history`, `self-
 ```
 
 Cover images served at `/uploads/:filename`,
-
-for example: http://localhost:PORT/uploads/COVER-filename.jpg
+for example: `http://localhost:PORT/uploads/COVER-filename.jpg`
 
 ---
 
@@ -195,11 +210,19 @@ Validation errors:
 ```json
 {
   "errors": {
-    "name": ["Required"],
-    "cover": ["Invalid URL"]
+    "name": ["Required"]
   }
 }
 ```
+
+| Status | Meaning |
+|--------|---------|
+| 400 | Bad request / validation failed |
+| 401 | Not authenticated |
+| 403 | Not authorized |
+| 404 | Not found |
+| 409 | Conflict (duplicate) |
+| 500 | Internal server error |
 
 ---
 
@@ -207,18 +230,16 @@ Validation errors:
 
 - Books get sequential IDs (`B-00001`, `B-00002`, ...)
 - Book availability flips automatically on borrow and return
-- A user cannot borrow the same book twice while it's still borrowed
-- Session auth -> login sets a cookie, logout destroys it
+- A user cannot borrow the same book twice while it is still borrowed
+- Passwords are never returned in any response
 
 ---
 
-## Planned
+## To-Do
 
-- JWT auth with refresh tokens
-- Pagination, filtering, sorting on list endpoints
-- Rate limiting + security hardening (helmet, CORS, mongo sanitization)
-- Cloudinary integration for book cover uploads
-- Tests (Jest + Supertest)
-- Dockerization
-
-
+- [x] JWT auth with refresh token rotation
+- [ ] Pagination, filtering, sorting on list endpoints
+- [ ] Rate limiting + security hardening 
+- [ ] Cloudinary integration for book cover uploads
+- [ ] Tests (Jest + Supertest)
+- [ ] Docker Containerization
