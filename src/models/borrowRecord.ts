@@ -1,8 +1,8 @@
-import mongoose, { model, Schema } from 'mongoose';
+import { Types, model, Schema } from 'mongoose';
 
 export interface IBorrowRecord {
-    book: mongoose.Types.ObjectId,
-    user: mongoose.Types.ObjectId,
+    book: Types.ObjectId,
+    user: Types.ObjectId,
     borrowDate: Date,
     returnDate: Date | null
 };
