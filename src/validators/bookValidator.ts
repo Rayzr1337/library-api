@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const categories = [
+export const categories = [
     'fantasy',
     'dystopia',
     'classic',

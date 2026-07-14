@@ -1,13 +1,14 @@
 import { Request, Response } from 'express'
 import * as borrowService from '../services/borrowService'
+import { BorrowQuery } from '../validators/queryValidator'
 
-export async function get_borrows(req: Request, res: Response) {
-    const result = await borrowService.getBorrows(req.user!.userId);
+export async function get_borrows(req: Request<{}, {}, {}, BorrowQuery>, res: Response) {
+    const result = await borrowService.getBorrows(req.user!.userId, req.parseQuery as BorrowQuery);
     res.json(result);
 };
 
-export async function get_recent_borrows(req: Request, res: Response) {
-    const result = await borrowService.getRecentBorrows();
+export async function get_recent_borrows(req: Request<{}, {}, {}, BorrowQuery>, res: Response) {
+    const result = await borrowService.getRecentBorrows(req.parseQuery as BorrowQuery);
     res.json(result);
 };
 
