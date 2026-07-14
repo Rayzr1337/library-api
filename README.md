@@ -199,6 +199,43 @@ PUT /api/user/me    user
 ```
 
 ---
+## Query Parameters
+
+All list endpoints support pagination and sorting.
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| page | number | 1 | Page number |
+| limit | number | 10 | Items per page (max 100) |
+| order | `asc` / `desc` | `asc` | Sort direction |
+
+### Books
+| Param | Type | Description |
+|-------|------|-------------|
+| category | enum | Filter by category |
+| author | string | Filter by author |
+| available | `true` / `false` | Filter by availability |
+| sort | `name` / `author` / `category` / `createdAt` / `id` | Sort field |
+
+### Borrows
+| Param | Type | Description |
+|-------|------|-------------|
+| returned | `true` / `false` | Filter by return status |
+| sort | `borrowDate` / `returnDate` | Sort field |
+
+### Paginated response shape
+```json
+{
+  "data": [ ... ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "totalItems": 42,
+    "totalPages": 5
+  }
+}
+```
+---
 
 ## Error responses
 
@@ -238,8 +275,9 @@ Validation errors:
 ## To-Do
 
 - [x] JWT auth with refresh token rotation
-- [ ] Pagination, filtering, sorting on list endpoints
+- [x] Pagination & Limiting, filtering, sorting on list endpoints
 - [ ] Rate limiting + security hardening 
 - [ ] Cloudinary integration for book cover uploads
 - [ ] Tests (Jest + Supertest)
 - [ ] Docker Containerization
+

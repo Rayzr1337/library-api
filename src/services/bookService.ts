@@ -1,5 +1,6 @@
 import Book from '../models/book'
 import { bookBody } from '../validators/bookValidator'
+import { BookQuery } from '../validators/queryValidator'
 import { AppError } from '../utils/AppError'
 
 export async function getNextId() {
@@ -9,8 +10,32 @@ export async function getNextId() {
     return `B-${String(nextNum).padStart(5, '0')}`;
 }
 
-export async function getBooks() {
-    return Book.find();
+export async function getBooks(query: BookQuery) {
+    const { page, limit, category, author, available, sort, order } = query;
+
+    const filter: Record<string, any> = {};
+    if (category) filter.category = category;
+    if (author) filter.author = author;
+    if (available !== undefined) filter.available = available;
+
+    const sortObj: Record<string, 1 | -1> = sort ? {[sort]: order === 'asc' ? 1 : -1} : { 'id': 1 };
+
+    const [data, totalItems] = await Promise.all([
+        Book.find(filter)
+            .sort(sortObj)
+            .skip((page - 1) * limit)
+            .limit(limit),
+        Book.countDocuments(filter)]);
+
+    return {
+        data,
+        pagination: {
+            page,
+            limit,
+            totalItems,
+            totalPages: Math.ceil(totalItems / limit)
+        }
+    };
 };
 
 export async function getBookById(id: string) {

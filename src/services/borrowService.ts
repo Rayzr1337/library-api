@@ -1,14 +1,68 @@
 import Borrow from '../models/borrowRecord'
 import Book from '../models/book'
+import { BorrowQuery } from '../validators/queryValidator'
 import { AppError } from '../utils/AppError'
 import { Types } from 'mongoose' 
 
-export async function getBorrows(id: string) {
-    return Borrow.find({ user: id }).populate('book');
+export async function getBorrows(id: string, query: BorrowQuery) {
+    const { page, limit, returned, sort, order } = query;
+
+    const filter: Record<string, any> = { user: id };
+    if (returned !== undefined) {
+        filter.returnDate = returned ? { $ne: null } : null;
+    }
+
+    const sortObj: Record<string, 1 | -1> = sort ? {[sort]: order === 'asc' ? 1 : -1} : { 'borrowDate': -1 };
+
+    const [borrows, totalItems] = await Promise.all([
+        Borrow.find(filter)
+            .sort(sortObj)
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .populate('book'),
+        Borrow.countDocuments(filter)
+    ]);
+
+    return {
+        data: borrows,
+        pagination: {
+            page,
+            limit,
+            totalItems,
+            totalPages: Math.ceil(totalItems / limit)
+        }
+    };
 };
 
-export async function getRecentBorrows() {
-    return Borrow.find().populate('book user').sort({ createdAt: -1 });
+export async function getRecentBorrows(query: BorrowQuery) {
+    const { page, limit, returned, sort, order } = query;
+
+    const filter: Record<string, any> = {};
+    if (returned !== undefined) {
+        filter.returnDate = returned ? { $ne: null } : null;
+    }
+
+    const sortObj: Record<string, 1 | -1> = { createdAt: -1 };
+    if (sort) sortObj[sort] = order === 'asc' ? 1 : -1;
+
+    const [borrows, totalItems] = await Promise.all([
+        Borrow.find(filter)
+            .sort(sortObj)
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .populate('book user'),
+        Borrow.countDocuments(filter)
+    ]);
+
+    return {
+        data: borrows,
+        pagination: {
+            page,
+            limit,
+            totalItems,
+            totalPages: Math.ceil(totalItems / limit)
+        }
+    };
 };
 
 export async function createBorrow(user: string, bookId: string) {

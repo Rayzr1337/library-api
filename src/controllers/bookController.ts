@@ -1,10 +1,11 @@
 import { Request, Response } from 'express'
 import * as bookService from '../services/bookService'
 import { bookBody, bookUpdate } from '../validators/bookValidator'
+import { BookQuery } from '../validators/queryValidator'
 import { AppError } from '../utils/AppError'
 
-export async function get_books(req: Request, res: Response) {
-    const result = await bookService.getBooks();
+export async function get_books(req: Request<{}, {}, {}, BookQuery>, res: Response) {
+    const result = await bookService.getBooks(req.parseQuery as BookQuery);
     res.json(result);
 };
 

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { AppError } from '../utils/AppError' 
 
-type controllerFunc = (req: Request<any>, res: Response, next: NextFunction) => Promise<any>
+type controllerFunc = (req: Request<any, any, any, any>, res: Response, next: NextFunction) => Promise<any>
 
 export function globalErrorHandler(err: unknown, req: Request, res: Response, next: NextFunction) {
     if (err instanceof AppError) {
