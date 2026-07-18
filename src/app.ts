@@ -2,7 +2,11 @@ import express from 'express'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import morgan from 'morgan'
+
 dotenv.config();
+
+import passport from 'passport'
+import './services/passport'
 
 import cookieParser from 'cookie-parser'
 import { globalErrorHandler } from './middleware/errorHandler'
@@ -16,6 +20,7 @@ const app = express();
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(cookieParser());
+app.use(passport.initialize());
 app.use('/uploads', express.static('uploads'));
 
 const main = async () => {

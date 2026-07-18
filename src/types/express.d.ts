@@ -2,12 +2,13 @@ import { BookQuery, BorrowQuery } from "../validators/queryValidator"
 
 declare global {    
     namespace Express {
+        interface User {
+            userId: string;
+            isAdmin: boolean;
+        }
+
         interface Request {
-            user?: {
-                userId: string;
-                isAdmin: boolean;
-            };
-            parseQuery: BookQuery | BorrowQuery
+            parseQuery: BookQuery | BorrowQuery;
         }
     }
 }
