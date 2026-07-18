@@ -25,7 +25,7 @@ export async function createUser(user: registerBody) {
     const pwdHash = await bcrypt.hash(password, 10);
     return await User.create({
         ...user,
-        password: pwdHash
+        password: pwdHash,
     });
 
 };
@@ -35,6 +35,7 @@ export async function loginUser(user: loginBody) {
 
     const findUsername = await User.findOne({ username });
     if (!findUsername) throw new AppError('Invalid credentials!', 401);
+    if (!findUsername.password) throw new AppError('Account registered via OAuth - use Google/GitHub to log in.', 401);
 
     const pwdMatch = await bcrypt.compare(password, findUsername.password);
     if (!pwdMatch)  throw new AppError('Invalid credentials!', 401);

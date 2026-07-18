@@ -74,3 +74,19 @@ export async function refresh_jwt(req: Request, res: Response) {
     res.json({ message: 'Access token refreshed.' });
 };
 
+export async function oauth2_handle(req: Request, res: Response) {
+    const { userId, isAdmin } = req.user!;
+    const tokens = await authService.authInit({ userId, isAdmin });
+    res.cookie('token', tokens.token, { maxAge: 15 * 60 * 1000, 
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax' });
+    res.cookie('rToken', tokens.refreshToken, { maxAge: 3 * 24 * 60 * 60 * 1000, 
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax' });
+
+    res.json({ message: 'OAuth login successful with external service.'})
+};
+
+

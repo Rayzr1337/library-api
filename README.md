@@ -8,6 +8,8 @@ Simple library CRUD API. Handles books, users, and borrow/return workflows with 
 
 **Auth:** JWT (access + refresh tokens, bcrypt password hashing)
 
+**OAuth2.0:** Google & GitHub with Passport.js
+
 **File Uploads:** Multer
 
 ---
@@ -25,7 +27,14 @@ Create a `.env` file:
 PORT=
 DB_URL=
 JWT_SECRET=
+BASE_URL=
 NODE_ENV= //'production' or 'development'
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
 ```
 
 ```bash
@@ -47,6 +56,13 @@ JWT-based auth with a two-token system:
 **Rotation** — every call to `/api/auth/refresh` invalidates the old refresh token and issues a new one. The new refresh token inherits the original expiry, so the 3-day window doesn't reset on each refresh.
 
 **Logout** — clears both cookies and deletes the refresh token hash from the database. Works even if the access token is expired.
+
+## **OAuth Login/Signup**
+ ```
+GET /api/auth/github
+GET /api/auth/google
+```
+(Automatic redirection & JWT Token-setting afterwards.)
 
 ---
 
@@ -280,4 +296,5 @@ Validation errors:
 - [ ] Cloudinary integration for book cover uploads
 - [ ] Tests (Jest + Supertest)
 - [ ] Docker Containerization
+
 

@@ -3,19 +3,25 @@ import { model, Schema } from 'mongoose';
 export interface IUser {
     username: string,
     email: string,
-    password: string,
+    password?: string,
     firstName: string,
     lastName: string,
-    isAdmin: boolean
+    isAdmin: boolean,
+    authProviders: string[],
+    GoogleId?: string,
+    GitHubId?: string
 };
 
 const userSchema = new Schema<IUser> ({
     username : { type: String, required: true },
     email: { type: String, required: true },
-    password: { type: String, required: true },
+    password: { type: String, required: false },
     firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    isAdmin: { type: Boolean, default: false }
+    lastName: { type: String, default: '' },
+    isAdmin: { type: Boolean, default: false },
+    authProviders: { type: [String], default: ['local'] },
+    GoogleId: { type: String, required: false },
+    GitHubId: { type: String, required: false }
 }, { 
         timestamps: true,
         versionKey: false,
