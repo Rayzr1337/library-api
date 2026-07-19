@@ -9,6 +9,9 @@ import passport from 'passport'
 import './services/passport'
 
 import cookieParser from 'cookie-parser'
+import helmet from 'helmet'
+import rateLimit from 'express-rate-limit'
+
 import { globalErrorHandler } from './middleware/errorHandler'
 import { AppError } from './utils/AppError'
 import authRouter from './routes/auth'
@@ -17,16 +20,31 @@ import borrowRouter from './routes/borrows'
 import userRouter from './routes/users'
 
 const app = express();
+
+app.use(helmet());
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(passport.initialize());
 app.use('/uploads', express.static('uploads'));
 
+const apiLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 100, 
+  standardHeaders: 'draft-7', 
+  legacyHeaders: false, 
+  message: {
+    status: 429,
+    message: 'Too many requests from this IP, please try again later.'
+  }
+});
+
 const main = async () => {
     try {
         if (!process.env.DB_URL) throw new Error("Database URL not found.");
         await mongoose.connect(process.env.DB_URL);
+
+        app.use('/api', apiLimit);
 
         app.use('/api', authRouter);
         app.use('/api', bookRouter);

@@ -292,7 +292,7 @@ Validation errors:
 
 - [x] JWT auth with refresh token rotation
 - [x] Pagination & Limiting, filtering, sorting on list endpoints
-- [ ] Rate limiting + security hardening 
+- [x] Rate limiting + security headers with helmet 
 - [ ] Cloudinary integration for book cover uploads
 - [ ] Tests (Jest + Supertest)
 - [ ] Docker Containerization
