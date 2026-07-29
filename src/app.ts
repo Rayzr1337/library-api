@@ -2,6 +2,7 @@ import express from 'express'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import morgan from 'morgan'
+import { v2 as cloudinary } from 'cloudinary' 
 
 dotenv.config();
 
@@ -26,7 +27,12 @@ app.use(express.json());
 app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(passport.initialize());
-app.use('/uploads', express.static('uploads'));
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME as string,
+    api_key: process.env.CLOUDINARY_API_KEY as string,
+    api_secret: process.env.CLOUDINARY_API_SECRET as string
+});
 
 const apiLimit = rateLimit({
   windowMs: 15 * 60 * 1000, 

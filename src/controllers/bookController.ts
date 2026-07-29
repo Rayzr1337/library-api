@@ -10,9 +10,9 @@ export async function get_books(req: Request<{}, {}, {}, BookQuery>, res: Respon
 };
 
 export async function create_book(req: Request<{}, {}, bookBody>, res: Response) {
-    const cover = req.file?.filename;
+    const { cover } = req.body;
     if (!cover) throw new AppError('Book cover image required!', 400);
-    const result = await bookService.addBook({ ...req.body, cover }); 
+    const result = await bookService.addBook(req.body); 
     res.status(201).json(result);
 };
 
@@ -28,8 +28,7 @@ export async function delete_book(req : Request<{id: string}>, res: Response) {
 
 
 export async function update_book(req : Request<{id: string}, {}, bookBody>, res: Response) {
-    const cover = req.file?.filename;
-    const result = await bookService.updateBook(req.params.id, {...req.body, ...(cover && { cover }) }); 
+    const result = await bookService.updateBook(req.params.id, req.body); 
     res.json(result);
 };
 

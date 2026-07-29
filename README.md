@@ -10,7 +10,7 @@ Simple library CRUD API. Handles books, users, and borrow/return workflows with 
 
 **OAuth2.0:** Google & GitHub with Passport.js
 
-**File Uploads:** Multer
+**File Uploads (Book Covers):** Multer + Cloudinary
 
 ---
 
@@ -35,13 +35,16 @@ GOOGLE_CLIENT_SECRET=
 
 GITHUB_CLIENT_ID=
 GITHUB_CLIENT_SECRET=
-```
 
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+```
+Run:
 ```bash
 npm run dev
 ```
-
-Multer upload directory: `./uploads`
 
 ---
 
@@ -145,13 +148,12 @@ Valid categories: `fantasy`, `dystopia`, `classic`, `science`, `history`, `self-
   "author": "string",
   "category": "string",
   "description": "string",
-  "cover": "COVER-1234567890.jpg",
+  "cover": "https://res.cloudinary.com/<cloud_name>/image/upload/v<timestamp>/book-covers/<public_id>",
   "available": true
 }
 ```
 
-Cover images served at `/uploads/:filename`,
-for example: `http://localhost:PORT/uploads/COVER-filename.jpg`
+Cover images uploaded to a memory buffer and then piped to Cloudinary and stored remotely. Each object stores the remote URL of the uploaded image.
 
 ---
 
@@ -179,7 +181,7 @@ GET  /api/borrow/recent       admin — recent borrow activity
     "id": "B-00001",
     "name": "string",
     "author": "string",
-    "cover": "COVER-1234567890.jpg",
+    "cover": "https://res.cloudinary.com/<cloud_name>/image/upload/v<timestamp>/book-covers/<public_id>",
     "available": false
   },
   "user": {
@@ -293,8 +295,6 @@ Validation errors:
 - [x] JWT auth with refresh token rotation
 - [x] Pagination & Limiting, filtering, sorting on list endpoints
 - [x] Rate limiting + security headers with helmet 
-- [ ] Cloudinary integration for book cover uploads
+- [x] Cloudinary integration for book cover uploads
 - [ ] Tests (Jest + Supertest)
 - [ ] Docker Containerization
-
-

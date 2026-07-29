@@ -4,7 +4,7 @@ import { BookQuery } from '../validators/queryValidator'
 import { AppError } from '../utils/AppError'
 
 export async function getNextId() {
-    const lastBook = await Book.findOne().sort({ createdAt: -1 });
+    const lastBook = await Book.findOne().sort({ id: -1 });
     if (!lastBook) { return `B-00001` }
     const nextNum = Number(lastBook.get('id').slice(2)) + 1;
     return `B-${String(nextNum).padStart(5, '0')}`;

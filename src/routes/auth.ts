@@ -24,11 +24,7 @@ router.post('/auth/signup', authLimit, validate(registerSchema), asyncErrorHandl
 router.post('/auth/logout', asyncErrorHandler(authController.logout_current));
 router.post('/auth/refresh', asyncErrorHandler(authController.refresh_jwt));
 router.get('/auth/google', passport.authenticate('google'));
-router.get('/auth/github', passport.authenticate('github'), (err, user, info) => {
-    console.log("err:", err);
-    console.log("info:", info);
-    console.log("user:", user)
-});
+router.get('/auth/github', passport.authenticate('github'));
 
 router.get('/auth/google/callback',
     passport.authenticate('google', { session: false, failureRedirect: '/api/auth/failure' }),
