@@ -21,7 +21,7 @@
     "skipLibCheck": true,
     "esModuleInterop" : true
   },
-    "include": ["src/**/*"],
+    "include": ["src/**/*", "tests/**/*"],
     "ts-node": {
         "files": true
       }

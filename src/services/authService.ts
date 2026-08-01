@@ -43,9 +43,15 @@ export async function loginUser(user: loginBody) {
     return findUsername;
 };
 
-export async function logoutUser(userId: string) {
-    await RefreshToken.deleteMany({ user: userId })
-};
+export async function logoutCurrentUser(rToken: string): Promise<boolean> {
+    const payload = jwt.decode(rToken) as jwt.JwtPayload & { userId?: string };
+    if (!payload?.userId) return false;
+    const tokenHash = crypto.createHash('sha256').update(rToken).digest('hex');
+    const deleted = await RefreshToken.findOneAndDelete({ tokenHash });
+    if (!deleted) return false; 
+    await RefreshToken.deleteMany({ user: payload.userId }); 
+    return true;
+}
 
 export async function authInit(user: IAuthUser, expiresAt?: Date) {
     if (!secret) throw new Error('JWT Secret is not defined!');
