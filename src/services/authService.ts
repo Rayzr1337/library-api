@@ -60,7 +60,7 @@ export async function authInit(user: IAuthUser, expiresAt?: Date) {
         secret,
         { expiresIn: '15m' });
 
-    const refreshToken = jwt.sign({ userId: user.userId },
+    const refreshToken = jwt.sign({ userId: user.userId, jti: crypto.randomUUID() },
                                    secret,
                                    { expiresIn: '3d' });
     const refreshTokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
