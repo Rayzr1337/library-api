@@ -3,7 +3,7 @@ import { createDefaultPreset } from 'ts-jest'
 const tsJestTransformCfg = createDefaultPreset().transform;
 
 /** @type {import("jest").Config} **/
-module.exports = {
+const config = {
   testEnvironment: "node",
   transform: {
     ...tsJestTransformCfg,
@@ -14,3 +14,5 @@ module.exports = {
   clearMocks: true,
   restoreMocks: true
 };
+
+export default config;

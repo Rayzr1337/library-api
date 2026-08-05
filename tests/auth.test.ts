@@ -3,6 +3,7 @@ import request from 'supertest'
 import { createApp } from '../src/app'
 import User from '../src/models/user'
 import RefreshToken from '../src/models/refreshToken'
+import { createOAuthUser, loginUser, signupUser } from './helpers/auth'
 
 const app = createApp();
 
@@ -30,14 +31,7 @@ jest.mock('passport', () => ({
 
 describe("Testing the sign-up route.", () => {
     it("Valid input returns 201 with created user, sets tokens.", async () => {
-        const res = await request(app).post('/api/auth/signup').send({
-          username: 'testuser1',
-          email: 'testuser1@example.com',
-          password: 'password123',
-          firstName: 'Test',
-          lastName: 'User',
-          isAdmin: false,
-        });
+        const res = await signupUser(app);
 
         expect(res.statusCode).toBe(201);
         expect(res.body).toMatchObject({
@@ -78,22 +72,10 @@ describe("Testing the sign-up route.", () => {
     })
 
     it("Used username returns 409.", async () => {
-        await User.create({
-          username: 'testuser1',
-          email: 'testuser1@example.com',
-          password: 'password123',
-          firstName: 'Test',
-          lastName: 'User',
-          isAdmin: false,
-        });
+        await signupUser(app);
 
-        const res = await request(app).post('/api/auth/signup').send({
-          username: 'testuser1',
+        const res = await signupUser(app, {
           email: 'differentemail@example.com',
-          password: 'password123',
-          firstName: 'Test',
-          lastName: 'User',
-          isAdmin: false,
         });
 
         expect(res.statusCode).toBe(409);
@@ -101,22 +83,10 @@ describe("Testing the sign-up route.", () => {
     })
 
     it("Used email returns 409.", async () => {
-        await User.create({
-          username: 'testuser1',
-          email: 'testuser1@example.com',
-          password: 'password123',
-          firstName: 'Test',
-          lastName: 'User',
-          isAdmin: false,
-        });
+        await signupUser(app);
 
-        const res = await request(app).post('/api/auth/signup').send({
+        const res = await signupUser(app, {
           username: 'testuser2',
-          email: 'testuser1@example.com',
-          password: 'password123',
-          firstName: 'Test',
-          lastName: 'User',
-          isAdmin: false,
         });
 
         expect(res.statusCode).toBe(409);
@@ -126,19 +96,9 @@ describe("Testing the sign-up route.", () => {
 
 describe("Testing the login route.", () => {
     it("Valid input returns 200 and sets tokens.", async () => {
-        await request(app).post('/api/auth/signup').send({
-                  username: 'testuser1',
-                  email: 'testuser1@example.com',
-                  password: 'password123',
-                  firstName: 'Test',
-                  lastName: 'User',
-                  isAdmin: false,
-         });
+      await signupUser(app);
 
-        const res = await request(app).post('/api/auth/login').send({
-            username: 'testuser1',
-            password: 'password123'
-        });
+        const res = await loginUser(app);
 
         expect(res.statusCode).toBe(200);
         expect(res.body).toMatchObject({
@@ -175,47 +135,25 @@ describe("Testing the login route.", () => {
     })
 
     it("Wrong password returns 401.", async () => {
-        await request(app).post('/api/auth/signup').send({
-                  username: 'testuser1',
-                  email: 'testuser1@example.com',
-                  password: 'password123',
-                  firstName: 'Test',
-                  lastName: 'User',
-                  isAdmin: false,
-        });
+      await signupUser(app);
 
-        const res = await request(app).post('/api/auth/login').send({
-            username: 'testuser1',
-            password: 'wrongpassword123'
-        });
+        const res = await loginUser(app, 'testuser1', 'wrongpassword123');
 
         expect(res.statusCode).toBe(401);
         expect(res.body.error).toBe('Invalid credentials!');
     })
 
     it("Non-existent username returns 401.", async () => {
-        const res = await request(app).post('/api/auth/login').send({
-            username: 'doesnotexist',
-            password: 'wrongpassword123'
-        });
+        const res = await loginUser(app, 'doesnotexist', 'wrongpassword123');
 
         expect(res.statusCode).toBe(401);
         expect(res.body.error).toBe('Invalid credentials!');
     })
 
     it("Username with no DB password returns 401 with informing OAuth account existence.", async () => {
-        await User.create({
-          username: 'testuser1',
-          email: 'testuser1@example.com',
-          firstName: 'Test',
-          lastName: 'User',
-          isAdmin: false,
-        });
+      await createOAuthUser();
         
-        const res = await request(app).post('/api/auth/login').send({
-            username: 'testuser1',
-            password: 'passwordthatdoesntmatter'
-        });
+        const res = await loginUser(app, 'testuser1', 'passwordthatdoesntmatter');
 
         expect(res.statusCode).toBe(401);
         expect(res.body.error).toBe('Account registered via OAuth - use Google/GitHub to log in.');
@@ -224,19 +162,9 @@ describe("Testing the login route.", () => {
 
 describe("Testing the logout route.", () => {
     it("Valid session logout returns 200, clears tokens.", async () => {
-        await request(app).post('/api/auth/signup').send({
-            username: 'testuser1',
-            email: 'testuser1@example.com',
-            password: 'password123',
-            firstName: 'Test',
-            lastName: 'User',
-            isAdmin: false,
-        });
+      await signupUser(app);
 
-        const loginRes = await request(app).post('/api/auth/login').send({
-            username: 'testuser1',
-            password: 'password123',
-        });
+        const loginRes = await loginUser(app);
 
         const rawCookies = loginRes.headers['set-cookie'] as unknown as string[];
         const res = await request(app).post('/api/auth/logout').set('Cookie', rawCookies);
@@ -266,19 +194,9 @@ describe("Testing the logout route.", () => {
 
 describe("Testing the refresh route.", () => {
     it("Valid refresh token returns 200, sets new access token.", async () => {
-        await request(app).post('/api/auth/signup').send({
-            username: 'testuser1',
-            email: 'testuser1@example.com',
-            password: 'password123',
-            firstName: 'Test',
-            lastName: 'User',
-            isAdmin: false,
-        });
+      await signupUser(app);
 
-        const loginRes = await request(app).post('/api/auth/login').send({
-            username: 'testuser1',
-            password: 'password123',
-        });
+        const loginRes = await loginUser(app);
 
         const oldCookies = loginRes.headers['set-cookie'] as unknown as string[];
         const res = await request(app).post('/api/auth/refresh').set('Cookie', oldCookies);
@@ -305,19 +223,9 @@ describe("Testing the refresh route.", () => {
     })
 
     it("User no longer existent in DB returns 404.", async () => {
-        await request(app).post('/api/auth/signup').send({
-            username: 'testuser1',
-            email: 'testuser1@example.com',
-            password: 'password123',
-            firstName: 'Test',
-            lastName: 'User',
-            isAdmin: false,
-        });
+      await signupUser(app);
 
-        const loginRes = await request(app).post('/api/auth/login').send({
-            username: 'testuser1',
-            password: 'password123',
-        });
+        const loginRes = await loginUser(app);
 
         const oldCookies = loginRes.headers['set-cookie'] as unknown as string[];
 
@@ -338,18 +246,8 @@ describe("Testing the refresh route.", () => {
     })
 
     it("Reusing a rotated/invalid refresh token returns 401.", async () => {
-      await request(app).post('/api/auth/signup').send({
-        username: 'testuser1',
-        email: 'testuser1@example.com',
-        password: 'password123',
-        firstName: 'Test',
-        lastName: 'User',
-        isAdmin: false,
-      });
-      const loginRes = await request(app).post('/api/auth/login').send({
-        username: 'testuser1',
-        password: 'password123',
-      });
+      await signupUser(app);
+      const loginRes = await loginUser(app);
       const originalCookies = loginRes.headers['set-cookie'] as unknown as string[];
 
       await request(app).post('/api/auth/refresh').set('Cookie', originalCookies);
