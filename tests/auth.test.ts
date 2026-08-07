@@ -96,7 +96,7 @@ describe("Testing the sign-up route.", () => {
 
 describe("Testing the login route.", () => {
     it("Valid input returns 200 and sets tokens.", async () => {
-      await signupUser(app);
+        await signupUser(app);
 
         const res = await loginUser(app);
 
@@ -135,7 +135,7 @@ describe("Testing the login route.", () => {
     })
 
     it("Wrong password returns 401.", async () => {
-      await signupUser(app);
+        await signupUser(app);
 
         const res = await loginUser(app, 'testuser1', 'wrongpassword123');
 
@@ -151,7 +151,7 @@ describe("Testing the login route.", () => {
     })
 
     it("Username with no DB password returns 401 with informing OAuth account existence.", async () => {
-      await createOAuthUser();
+         await createOAuthUser();
         
         const res = await loginUser(app, 'testuser1', 'passwordthatdoesntmatter');
 

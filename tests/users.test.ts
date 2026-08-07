@@ -2,9 +2,7 @@ import './helpers/db'
 import request from 'supertest'
 import { createApp } from '../src/app'
 import User from '../src/models/user'
-import RefreshToken from '../src/models/refreshToken'
-import { createOAuthUser, loginUser, signupUser } from './helpers/auth'
-import { log } from 'node:console'
+import { loginUser, signupUser } from './helpers/auth'
 
 const app = createApp();
 

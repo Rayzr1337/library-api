@@ -23,7 +23,7 @@ export async function get_book_by_id(req : Request<{id: string}>, res: Response)
 
 export async function delete_book(req : Request<{id: string}>, res: Response) {
     const result = await bookService.deleteBook(req.params.id);
-    res.json({ message: "Book deleted successfully. "});
+    res.json({ message: "Book deleted successfully."});
 };
 
 

@@ -20,7 +20,9 @@ export const upload = multer({
 });
 
 export async function cloudinaryUpload(req: Request, res: Response, next: NextFunction) {
-    if (!req.file) throw new AppError("Failed to read book cover image data from buffer!", 500);
+    if (!req.file) {
+        return next();
+    }
     const result = await new Promise<UploadApiResponse>((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
             { folder: 'book-covers' }, 
