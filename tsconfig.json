@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "rootDir": "./src",
+    "rootDir": ".",
     "outDir": "./dist",
     
 
@@ -19,9 +19,10 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "auto",
     "skipLibCheck": true,
-    "esModuleInterop" : true
+    "esModuleInterop" : true,
+    "types": ["node", "jest"]
   },
-    "include": ["src/**/*"],
+    "include": ["src/**/*", "tests/**/*"],
     "ts-node": {
         "files": true
       }

@@ -38,10 +38,7 @@ export async function login_account(req: Request<{}, {}, loginBody>,
 
 export async function logout_current(req: Request, res: Response) {
     const rToken = req.cookies.rToken;
-    if (rToken) { 
-        const payload = jwt.decode(rToken) as jwt.JwtPayload & { userId: string };
-        if (payload?.userId) await authService.logoutUser(payload.userId);
-    }
+    const wasLoggedIn = rToken ? await authService.logoutCurrentUser(rToken) : false;
 
     res.clearCookie("token", {
         httpOnly: true,
@@ -53,6 +50,7 @@ export async function logout_current(req: Request, res: Response) {
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
     });
+    if (!wasLoggedIn) throw new AppError('Not logged in.', 401);
     res.json({ message: 'Logged out successfully.' });
 };
 

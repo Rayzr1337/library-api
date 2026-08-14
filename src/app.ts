@@ -1,5 +1,4 @@
 import express from 'express'
-import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import morgan from 'morgan'
 import { v2 as cloudinary } from 'cloudinary' 
@@ -20,74 +19,43 @@ import bookRouter from './routes/books'
 import borrowRouter from './routes/borrows'
 import userRouter from './routes/users'
 
-const app = express();
+export function createApp() {
+    const app = express();
 
-app.use(helmet());
-app.use(express.json());
-app.use(morgan('dev'));
-app.use(cookieParser());
-app.use(passport.initialize());
+    app.use(helmet());
+    app.use(express.json());
+    app.use(morgan('dev'));
+    app.use(cookieParser());
+    app.use(passport.initialize());
 
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME as string,
-    api_key: process.env.CLOUDINARY_API_KEY as string,
-    api_secret: process.env.CLOUDINARY_API_SECRET as string
-});
+    cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME as string,
+        api_key: process.env.CLOUDINARY_API_KEY as string,
+        api_secret: process.env.CLOUDINARY_API_SECRET as string
+    });
 
-const apiLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 100, 
-  standardHeaders: 'draft-7', 
-  legacyHeaders: false, 
-  message: {
-    status: 429,
-    message: 'Too many requests from this IP, please try again later.'
-  }
-});
+    const apiLimit = rateLimit({
+      windowMs: 15 * 60 * 1000, 
+      max: 100, 
+      standardHeaders: 'draft-7', 
+      legacyHeaders: false, 
+      message: {
+        status: 429,
+        message: 'Too many requests from this IP, please try again later.'
+      }
+    });
 
-const main = async () => {
-    try {
-        if (!process.env.DB_URL) throw new Error("Database URL not found.");
-        await mongoose.connect(process.env.DB_URL);
+    app.use('/api', apiLimit);
 
-        app.use('/api', apiLimit);
+    app.use('/api', authRouter);
+    app.use('/api', bookRouter);
+    app.use('/api', borrowRouter);
+    app.use('/api', userRouter);
 
-        app.use('/api', authRouter);
-        app.use('/api', bookRouter);
-        app.use('/api', borrowRouter);
-        app.use('/api', userRouter);
+    app.use((req, res, next) => {
+        next(new AppError('Route not found', 404))
+    })
+    app.use(globalErrorHandler);
 
-        app.use((req, res, next) => {
-            next(new AppError('Route not found', 404))
-        })
-        app.use(globalErrorHandler);
-        app.listen(process.env.PORT, () => console.log(`[+] Listening on port ${process.env.PORT}`));
-    } catch (err: unknown) {
-        if (err instanceof Error) {
-            console.log(`Error starting server: ${err.message}`);
-        } else {
-            console.log("Error starting server!");
-        }
-    }
-}; 
-
-mongoose.connection.on('error', (err) => {
-    console.log(`Database connection error: ${err.message}`)
-});
-
-mongoose.connection.on('disconnected', () => {
-    console.log('Database disconnected')
-});
-
-main();
-
-process.on('uncaughtException', err => {
-    console.log(`Uncaught Exception: ${err.message}`);
-    process.exit(1);
-});
-
-process.on('unhandledRejection', err => {
-    console.log(`Unhandled Rejection: ${err}`);
-    process.exit(1);
-});
-
+    return app;
+};

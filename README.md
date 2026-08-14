@@ -12,6 +12,8 @@ Simple library CRUD API. Handles books, users, and borrow/return workflows with 
 
 **File Uploads (Book Covers):** Multer + Cloudinary
 
+**Integration & Unit Tests:** Jest + Supertest
+
 ---
 
 ## Running locally
@@ -296,5 +298,5 @@ Validation errors:
 - [x] Pagination & Limiting, filtering, sorting on list endpoints
 - [x] Rate limiting + security headers with helmet 
 - [x] Cloudinary integration for book cover uploads
-- [ ] Tests (Jest + Supertest)
-- [ ] Docker Containerization
+- [x] Tests (Jest + Supertest)
+- [ ] Docker Containerization + Deployment + Simple CI/CD Pipeline
