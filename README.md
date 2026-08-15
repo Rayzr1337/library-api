@@ -16,6 +16,14 @@ Simple library CRUD API. Handles books, users, and borrow/return workflows with 
 
 ---
 
+## Live Deployment
+
+Deployed on [Railway](https://railway.app), built and pushed automatically via GitHub Actions.
+
+**Base URL:** `https://library-api-final.up.railway.app/api`
+
+---
+
 ## Running locally
 
 ```bash
@@ -283,6 +291,47 @@ Validation errors:
 
 ---
 
+## Testing
+
+Jest + Supertest, run against MongoDB via `mongodb-memory-server` (no external database needed to run the suite).
+
+```bash
+npm test
+```
+
+Coverage includes auth (signup/login/logout/refresh token rotation/OAuth), books, borrow/return flows, and the auth/error-handling middleware, run as both integration tests (real DB, real hashing/JWT signing) and isolated unit tests for middleware logic.
+
+---
+
+## Docker
+
+Multi-stage build: compiles TypeScript in a builder stage, ships only the compiled output and production dependencies in the final image.
+
+**Build and run locally:**
+```bash
+docker build -t library-api .
+docker run -p 3000:3000 --env-file .env library-api
+```
+
+**Local development with MongoDB via Docker Compose:**
+```bash
+docker compose up
+```
+Runs the API alongside a local MongoDB container, networked together, no external database needed for local dev.
+
+---
+
+## CI/CD
+
+Two GitHub Actions workflows:
+
+- **`test.yml`** — runs the full Jest + Supertest suite on every pull request into `main`.
+- **`main.yml`** — on every push to `main`: runs tests → builds the Docker image → pushes it to GitHub Container Registry (`ghcr.io/rayzr1337/library-api`) → triggers a Railway redeploy pulling that image.
+
+Railway is configured to deploy from the pre-built GHCR image rather than building from source itself.
+
+---
+
 ## Notes
 
 - Books get sequential IDs (`B-00001`, `B-00002`, ...)
@@ -296,7 +345,9 @@ Validation errors:
 
 - [x] JWT auth with refresh token rotation
 - [x] Pagination & Limiting, filtering, sorting on list endpoints
-- [x] Rate limiting + security headers with helmet 
+- [x] Rate limiting + security headers with helmet
 - [x] Cloudinary integration for book cover uploads
-- [x] Tests (Jest + Supertest)
-- [ ] Docker Containerization + Deployment + Simple CI/CD Pipeline
+- [x] Tests (Jest + Supertest) — integration + unit coverage
+- [x] Dockerize (multi-stage build)
+- [x] Deploy (Railway, from pre-built image)
+- [x] CI/CD pipeline (GitHub Actions: test → build → push to GHCR → deploy)

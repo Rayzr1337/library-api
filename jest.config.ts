@@ -9,6 +9,7 @@ const config = {
     ...tsJestTransformCfg,
   },
   testMatch: ['**/tests/**/*.test.ts'],
+  setupFiles: ['<rootDir>/tests/helpers/env-setup.ts'],
   verbose: true,
   forceExit: true,
   clearMocks: true,
